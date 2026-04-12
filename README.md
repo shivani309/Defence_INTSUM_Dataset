@@ -152,20 +152,7 @@ INTSUMGen supports:
 
 ---
 
-## Repository Structure
-├── data/
-│ ├── synthetic_intsum_event_specific.csv
-│ ├── synthetic_intsum_evaluated.csv
-│ ├── intsum_extraction_finetune_with_geo.jsonl
-│
-├── scripts/
-│ ├── generation_pipeline.py
-│ ├── evaluation_pipeline.py
-│
-├── figures/
-│ ├── pipeline.pdf
-│
-├── README.md
+
 
 ##  Acknowledgements
 
