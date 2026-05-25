@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>INTSUM — Defence Intelligence System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;600;700;900&family=Barlow:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #070b0f;
+    --surface:   #0d1319;
+    --card:      #111820;
+    --border:    #1e2d3d;
+    --accent:    #00e5ff;
+    --accent2:   #ff6b35;
+    --warn:      #ffc107;
+    --danger:    #ff3d3d;
+    --success:   #00c853;
+    --text:      #c8d8e8;
+    --muted:     #5a7a8a;
+    --mono:      'Share Tech Mono', monospace;
+    --sans:      'Barlow Condensed', sans-serif;
+    --body:      'Barlow', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,229,255,0.015) 2px,
+      rgba(0,229,255,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .logo-emblem {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--accent);
+    transform: rotate(45deg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    position: relative;
+  }
+
+  .logo-emblem::after {
+    content: '◈';
+    transform: rotate(-45deg);
+    color: var(--accent);
+    font-size: 18px;
+  }
+
+  .logo-text h1 {
+    font-family: var(--sans);
+    font-weight: 900;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--accent);
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .logo-text p {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    margin-top: 2px;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .status-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--success);
+    box-shadow: 0 0 8px var(--success);
+    animation: pulse-dot 2s infinite;
+  }
+
+  .dot.offline { background: var(--danger); box-shadow: 0 0 8px var(--danger); animation: none; }
+
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.4; }
+  }
+
+  .clock {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .app {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: calc(100vh - 64px);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    grid-row: 1 / 3;
+  }
+
+  .panel-label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  /* Search */
+  .search-box {
+    position: relative;
+  }
+
+  .search-box textarea {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 13px;
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 100px;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.5;
+  }
+
+  .search-box textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 1px rgba(0,229,255,0.2);
+  }
+
+  .search-box textarea::placeholder { color: var(--muted); }
+
+  .btn-query {
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px;
+    background: transparent;
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-query:hover {
+    background: var(--accent);
+    color: var(--bg);
+    box-shadow: 0 0 20px rgba(0,229,255,0.4);
+  }
+
+  .btn-query:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Quick queries */
+  .quick-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .quick-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--muted);
+    padding: 8px 10px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text);
+    transition: all 0.15s;
+    border-radius: 0 3px 3px 0;
+  }
+
+  .quick-item:hover {
+    border-left-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,229,255,0.05);
+  }
+
+  /* Stats */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-box {
+    background: var(--card);
+    border: 1px solid var(--border);
+    padding: 12px;
+    text-align: center;
+    border-radius: 4px;
+  }
+
+  .stat-box .val {
+    font-family: var(--mono);
+    font-size: 22px;
+    color: var(--accent);
+    display: block;
+  }
+
+  .stat-box .lbl {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN CONTENT ── */
+  .main-content {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  /* Source bar */
+  .source-bar {
+    display: none;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    border-radius: 4px;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .source-bar.visible { display: flex; }
+
+  .source-tag {
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .source-tag.rag      { background: rgba(0,200,83,0.15);  color: var(--success); border: 1px solid var(--success); }
+  .source-tag.realtime { background: rgba(255,107,53,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+  .source-tag.hybrid   { background: rgba(0,229,255,0.1);  color: var(--accent);  border: 1px solid var(--accent); }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .card-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .card-header .icon {
+    font-size: 14px;
+  }
+
+  .card-header h3 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text);
+    flex: 1;
+  }
+
+  .card-header .badge {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 2px 8px;
+    background: rgba(0,229,255,0.1);
+    border: 1px solid rgba(0,229,255,0.3);
+    color: var(--accent);
+    border-radius: 2px;
+  }
+
+  .card-body { padding: 16px; }
+
+  /* Structured fields grid */
+  .fields-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 10px;
+  }
+
+  .field-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    border-radius: 4px;
+  }
+
+  .field-item .field-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .field-item .field-value {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--accent);
+    word-break: break-word;
+  }
+
+  .field-item.highlight { border-color: var(--accent); }
+
+  /* INTSUM text */
+  .intsum-text {
+    font-family: var(--mono);
+    font-size: 12px;
+    line-height: 1.9;
+    color: var(--text);
+    white-space: pre-wrap;
+    background: var(--surface);
+    padding: 16px;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  /* Action lists */
+  .action-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .action-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    transition: border-color 0.2s;
+  }
+
+  .action-item:hover { border-color: var(--accent); }
+
+  .action-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    width: 22px;
+    flex-shrink: 0;
+    padding-top: 1px;
+  }
+
+  .action-text {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--text);
+  }
+
+  .action-meta {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  /* Past actions */
+  .past-action {
+    border-left: 3px solid var(--warn);
+  }
+
+  /* RAG matches */
+  .rag-match {
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 8px;
+  }
+
+  .rag-match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .rag-match-meta {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .meta-tag {
+    font-family: var(--mono);
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+  }
+
+  .meta-tag.evt  { background: rgba(255,193,7,0.1);  color: var(--warn);    border: 1px solid rgba(255,193,7,0.3); }
+  .meta-tag.loc  { background: rgba(0,229,255,0.07); color: var(--accent);  border: 1px solid rgba(0,229,255,0.2); }
+  .meta-tag.date { background: rgba(90,122,138,0.2); color: var(--muted);   border: 1px solid var(--border); }
+
+  .sim-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  .sim-track {
+    width: 60px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .sim-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s;
+  }
+
+  .rag-note {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Realtime results */
+  .rt-item {
+    padding: 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 0 4px 4px 0;
+    margin-bottom: 8px;
+  }
+
+  .rt-title {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .rt-snippet {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 6px;
+  }
+
+  .rt-link {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--accent2);
+    text-decoration: none;
+  }
+
+  .rt-link:hover { text-decoration: underline; }
+
+  /* Loading state */
+  .loader {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 60px;
+    color: var(--muted);
+  }
+
+  .loader.active { display: flex; }
+
+  .loader-ring {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loader-text {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    animation: blink 1.2s infinite;
+  }
+
+  @keyframes blink { 50% { opacity: 0.3; } }
+
+  /* Welcome state */
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    gap: 16px;
+    padding: 60px;
+    text-align: center;
+  }
+
+  .welcome-icon {
+    font-size: 48px;
+    opacity: 0.2;
+  }
+
+  .welcome h2 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .welcome p {
+    font-size: 13px;
+    color: var(--muted);
+    max-width: 400px;
+    line-height: 1.6;
+  }
+
+  /* Copy button */
+  .copy-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+  }
+
+  .tab {
+    padding: 10px 18px;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.15s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; padding: 16px; }
+  .tab-content.active { display: block; }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { grid-row: auto; border-right: none; border-bottom: 1px solid var(--border); }
+    .fields-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">
+    <div class="logo-emblem"></div>
+    <div class="logo-text">
+      <h1>INTSUM</h1>
+      <p>Defence Intelligence Summary System</p>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="status-dot">
+      <div class="dot" id="systemDot"></div>
+      <span id="systemStatus">SYSTEM ONLINE</span>
+    </div>
+    <div class="clock" id="clock">--:-- HRS</div>
+  </div>
+</header>
+
+<!-- MAIN APP -->
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <div>
+      <div class="panel-label">Intelligence Query</div>
+      <div class="search-box">
+        <textarea id="queryInput" placeholder="Describe the event or paste a field note...&#10;&#10;e.g. Maoist attack on CRPF convoy in Dantewada district, Chhattisgarh"></textarea>
+        <button class="btn-query" id="queryBtn" onclick="submitQuery()">
+          ▶ Generate INTSUM
+        </button>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-label">Quick Queries</div>
+      <div class="quick-list">
+        <div class="quick-item" onclick="setQuery(this)">IED blast targeting CRPF convoy in Bijapur forest area</div>
+        <div class="quick-item" onclick="setQuery(this)">Militant encounter in Sopore, Kashmir — security forces operation</div>
+        <div class="quick-item" onclick="setQuery(this)">Farmer protest blocking NH-44 in Punjab, chakka jam</div>
+        <div class="quick-item" onclick="setQuery(this)">Maoist ambush on police patrol in Gadchiroli district</div>
+        <div class="quick-item" onclick="setQuery(this)">Communal violence between two groups in Vadodara city</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-label">System Stats</div>
+      <div class="stat-grid">
+        <div class="stat-box">
+          <span class="val" id="statDocs">—</span>
+          <span class="lbl">RAG Docs</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="statQueries">0</span>
+          <span class="lbl">Queries</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="statModel">T5</span>
+          <span class="lbl">LLM</span>
+        </div>
+        <div class="stat-box">
+          <span class="val" id="statSource">—</span>
+          <span class="lbl">Last Source</span>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" id="mainContent">
+
+    <!-- Welcome -->
+    <div class="welcome" id="welcomeState">
+      <div class="welcome-icon">⬡</div>
+      <h2>Awaiting Query</h2>
+      <p>Enter an event description or field note in the query panel. The system will retrieve historical intelligence from the RAG database and fetch real-time data to generate a structured INTSUM report.</p>
+    </div>
+
+    <!-- Loader -->
+    <div class="loader" id="loaderState">
+      <div class="loader-ring"></div>
+      <div class="loader-text" id="loaderMsg">Processing Intelligence...</div>
+    </div>
+
+    <!-- Results (hidden until query) -->
+    <div id="resultsState" style="display:none; display:flex; flex-direction:column; gap:20px;">
+
+      <!-- Source bar -->
+      <div class="source-bar" id="sourceBar">
+        <span style="font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;">SOURCE</span>
+        <span class="source-tag" id="sourceTag">—</span>
+        <span id="sourceDesc" style="color:var(--muted)"></span>
+        <span style="margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted)" id="generatedAt"></span>
+      </div>
+
+      <!-- Structured Fields -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">◈</span>
+          <h3>Structured Intelligence Fields</h3>
+          <span class="badge" id="fieldsBadge">EXTRACTED</span>
+        </div>
+        <div class="card-body">
+          <div class="fields-grid" id="fieldsGrid"></div>
+        </div>
+      </div>
+
+      <!-- INTSUM Report -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">▣</span>
+          <h3>INTSUM Report</h3>
+          <button class="copy-btn" onclick="copyIntsum()">⎘ COPY</button>
+        </div>
+        <div class="card-body">
+          <div class="intsum-text" id="intsumText"></div>
+        </div>
+      </div>
+
+      <!-- Tabs: Actions | RAG | Realtime -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">⊞</span>
+          <h3>Intelligence Details</h3>
+        </div>
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('past')">Past Actions</button>
+          <button class="tab" onclick="switchTab('rec')">Recommendations</button>
+          <button class="tab" onclick="switchTab('rag')">RAG Matches</button>
+          <button class="tab" onclick="switchTab('rt')">Real-time Feed</button>
+        </div>
+
+        <div class="tab-content active" id="tab-past">
+          <div class="action-list" id="pastActionsList">
+            <div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:20px;text-align:center;">No historical actions found for this event type.</div>
+          </div>
+        </div>
+
+        <div class="tab-content" id="tab-rec">
+          <div class="action-list" id="recActionsList"></div>
+        </div>
+
+        <div class="tab-content" id="tab-rag">
+          <div id="ragMatchesList"></div>
+        </div>
+
+        <div class="tab-content" id="tab-rt">
+          <div id="realtimeList"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ── API BASE URL (adjust if deploying) ──
+const API_BASE = window.location.origin.includes('localhost') || window.location.origin.includes('127.0.0.1')
+  ? 'http://localhost:8000'
+  : window.location.origin;
+
+let queryCount = 0;
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const hh  = String(now.getHours()).padStart(2,'0');
+  const mm  = String(now.getMinutes()).padStart(2,'0');
+  const ss  = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clock').textContent = `${hh}:${mm}:${ss} HRS IST`;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Health check
+async function checkHealth() {
+  try {
+    const r = await fetch(`${API_BASE}/api/health`);
+    const d = await r.json();
+    document.getElementById('systemDot').classList.remove('offline');
+    document.getElementById('systemStatus').textContent = 'SYSTEM ONLINE';
+    document.getElementById('statDocs').textContent = d.rag_documents;
+    document.getElementById('statModel').textContent = 'T5-L';
+  } catch(e) {
+    document.getElementById('systemDot').classList.add('offline');
+    document.getElementById('systemStatus').textContent = 'BACKEND OFFLINE';
+    document.getElementById('statDocs').textContent = '—';
+  }
+}
+checkHealth();
+setInterval(checkHealth, 30000);
+
+// Quick query
+function setQuery(el) {
+  document.getElementById('queryInput').value = el.textContent.trim();
+}
+
+// Tab switching
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById(`tab-${name}`).classList.add('active');
+}
+
+// Copy INTSUM
+function copyIntsum() {
+  const text = document.getElementById('intsumText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = '✓ COPIED';
+    setTimeout(() => btn.textContent = '⎘ COPY', 2000);
+  });
+}
+
+// Loader messages cycle
+const loaderMsgs = [
+  'Querying Intelligence Database...',
+  'Fetching Real-time Sources...',
+  'Retrieving RAG Context...',
+  'Generating INTSUM Report...',
+  'Extracting Structured Fields...'
+];
+let loaderInterval;
+
+function startLoader() {
+  let i = 0;
+  document.getElementById('loaderMsg').textContent = loaderMsgs[0];
+  loaderInterval = setInterval(() => {
+    i = (i + 1) % loaderMsgs.length;
+    document.getElementById('loaderMsg').textContent = loaderMsgs[i];
+  }, 1500);
+}
+function stopLoader() { clearInterval(loaderInterval); }
+
+// Render structured fields
+function renderFields(fields) {
+  const grid = document.getElementById('fieldsGrid');
+  const highlight = ['actor1', 'location', 'event_type'];
+  const labels = {
+    actor1: 'Primary Actor', actor2: 'Secondary Actor',
+    event_type: 'Event Type', location: 'Location',
+    date: 'Date', fatalities: 'Fatalities',
+    latitude: 'Latitude', longitude: 'Longitude'
+  };
+  grid.innerHTML = Object.entries(fields).map(([k, v]) => `
+    <div class="field-item ${highlight.includes(k) ? 'highlight' : ''}">
+      <div class="field-label">${labels[k] || k}</div>
+      <div class="field-value">${v && v !== 'Unknown' && v !== 'None' && v !== 'nan' ? v : '—'}</div>
+    </div>
+  `).join('');
+}
+
+// Render past actions
+function renderPastActions(actions) {
+  const el = document.getElementById('pastActionsList');
+  if (!actions || actions.length === 0) {
+    el.innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:20px;text-align:center;">No historical actions found — this may be a recent or novel event type.</div>`;
+    return;
+  }
+  el.innerHTML = actions.map((a, i) => `
+    <div class="action-item past-action">
+      <span class="action-num">[${String(i+1).padStart(2,'0')}]</span>
+      <div>
+        <div class="action-text">${a.action}</div>
+        <div class="action-meta">${a.event_type} | ${a.location} | ${a.date} | ${a.source}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Render recommended actions
+function renderRecommendations(actions) {
+  const el = document.getElementById('recActionsList');
+  if (!actions || actions.length === 0) {
+    el.innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:20px;text-align:center;">No recommendations generated.</div>`;
+    return;
+  }
+  el.innerHTML = actions.map((a, i) => `
+    <div class="action-item">
+      <span class="action-num" style="color:var(--accent2)">[${String(i+1).padStart(2,'0')}]</span>
+      <div class="action-text">${a}</div>
+    </div>
+  `).join('');
+}
+
+// Render RAG matches
+function renderRAGMatches(matches) {
+  const el = document.getElementById('ragMatchesList');
+  if (!matches || matches.length === 0) {
+    el.innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:20px;text-align:center;">No similar events found in database.</div>`;
+    return;
+  }
+  el.innerHTML = matches.map((m, i) => `
+    <div class="rag-match">
+      <div class="rag-match-header">
+        <div class="rag-match-meta">
+          <span class="meta-tag evt">${m.event_type || '—'}</span>
+          <span class="meta-tag loc">${m.location || '—'}</span>
+          <span class="meta-tag date">${m.date || 'No date'}</span>
+          ${m.has_intsum ? '<span class="meta-tag" style="background:rgba(0,200,83,0.1);color:var(--success);border:1px solid rgba(0,200,83,0.3)">✓ INTSUM</span>' : ''}
+        </div>
+        <div class="sim-bar">
+          <div class="sim-track"><div class="sim-fill" style="width:${Math.round(m.similarity*100)}%"></div></div>
+          <span>${Math.round(m.similarity*100)}% match</span>
+        </div>
+      </div>
+      <div class="rag-note">${m.note}</div>
+    </div>
+  `).join('');
+}
+
+// Render realtime results
+function renderRealtime(results) {
+  const el = document.getElementById('realtimeList');
+  if (!results || results.length === 0) {
+    el.innerHTML = `<div style="color:var(--muted);font-family:var(--mono);font-size:11px;padding:20px;text-align:center;">No real-time results.</div>`;
+    return;
+  }
+  el.innerHTML = results.map(r => `
+    <div class="rt-item">
+      <div class="rt-title">${r.title}</div>
+      <div class="rt-snippet">${r.snippet}</div>
+      <a class="rt-link" href="${r.link}" target="_blank">${r.link !== '#' ? '↗ VIEW SOURCE' : 'No link'}</a>
+      ${r.date ? `<span style="font-family:var(--mono);font-size:10px;color:var(--muted);margin-left:12px">${r.date}</span>` : ''}
+    </div>
+  `).join('');
+}
+
+// Source tag
+function renderSourceBar(source, generatedAt) {
+  const bar  = document.getElementById('sourceBar');
+  const tag  = document.getElementById('sourceTag');
+  const desc = document.getElementById('sourceDesc');
+  bar.classList.add('visible');
+  tag.className = `source-tag ${source}`;
+  const srcMap = {
+    rag:      ['RAG',      'Retrieved from historical intelligence database'],
+    realtime: ['LIVE',     'Fetched from real-time sources — recent event'],
+    hybrid:   ['HYBRID',   'Combined RAG database + real-time intelligence feed']
+  };
+  const [label, description] = srcMap[source] || ['UNKNOWN', ''];
+  tag.textContent = label;
+  desc.textContent = description;
+  const dt = new Date(generatedAt);
+  document.getElementById('generatedAt').textContent =
+    `Generated: ${dt.toLocaleDateString('en-IN')} ${dt.toLocaleTimeString('en-IN')}`;
+}
+
+// Main query submission
+async function submitQuery() {
+  const query = document.getElementById('queryInput').value.trim();
+  if (!query) return;
+
+  const btn = document.getElementById('queryBtn');
+  btn.disabled = true;
+
+  // Show loader, hide others
+  document.getElementById('welcomeState').style.display = 'none';
+  document.getElementById('resultsState').style.display = 'none';
+  document.getElementById('loaderState').classList.add('active');
+  startLoader();
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/query`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, max_results: 5 })
+    });
+
+    if (!resp.ok) throw new Error(`Server error: ${resp.status}`);
+    const data = await resp.json();
+
+    // Render everything
+    renderSourceBar(data.source, data.generated_at);
+    renderFields(data.structured_fields);
+    document.getElementById('intsumText').textContent = data.intsum;
+    renderPastActions(data.past_actions);
+    renderRecommendations(data.recommended_actions);
+    renderRAGMatches(data.rag_matches);
+    renderRealtime(data.realtime_results);
+
+    // Update stats
+    queryCount++;
+    document.getElementById('statQueries').textContent = queryCount;
+    document.getElementById('statSource').textContent =
+      data.source === 'hybrid' ? 'HYB' : data.source.toUpperCase().slice(0,3);
+
+    // Switch to results tab (default past actions)
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelector('.tab').classList.add('active');
+    document.getElementById('tab-past').classList.add('active');
+
+    // Show results
+    stopLoader();
+    document.getElementById('loaderState').classList.remove('active');
+    document.getElementById('resultsState').style.display = 'flex';
+
+  } catch(err) {
+    stopLoader();
+    document.getElementById('loaderState').classList.remove('active');
+    document.getElementById('welcomeState').style.display = 'flex';
+    document.getElementById('welcomeState').querySelector('p').textContent =
+      `Error: ${err.message}. Make sure the backend server is running at ${API_BASE}`;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+// Enter key support
+document.getElementById('queryInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) submitQuery();
+});
+</script>
+</body>
+</html>
