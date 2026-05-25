@@ -1,4 +1,4 @@
-# INTSUMGen: Synthetic Dataset for Geo-Aware Intelligence Summarization
+# INTSUMGen: Geo-Aware Intelligence Summarization
 
 INTSUMGen is a reproducible synthetic dataset designed to bridge the gap between structured conflict event data and natural language intelligence summaries. The dataset enables research in geo-aware summarization, structured-to-text generation, and intelligence-focused NLP tasks.
 
